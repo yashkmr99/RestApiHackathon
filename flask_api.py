@@ -26,28 +26,32 @@ events = {
 		"Organised by": "111",
 		"Location": "L1",
 		"Date": "9 Oct",
-		"Time": "10am"
+		"Time": "10am",
+		"Event ID": "1"
 	},
 	"2":{
 		"Event name": "bbb",
 		"Organised by": "222",
 		"Location": "Audi",
 		"Date": "9 Oct",
-		"Time": "12pm"
+		"Time": "12pm",
+		"Event ID": "2"	
 	},
 	"3":{
 		"Event name": "ccc",
 		"Organised by": "333",
 		"Location": "Seminar Hall",
 		"Date": "9 Oct",
-		"Time": "2pm"
+		"Time": "2pm",
+		"Event ID": "3"	
 	},
 	"4":{
 		"Event name": "ddd",
 		"Organised by": "444",
 		"Location": "Seminar Hall",
 		"Date": "9 Oct",
-		"Time": "6pm"
+		"Time": "6pm",
+		"Event ID": "4"	
 	}	
 }
 
@@ -74,7 +78,8 @@ class ManageEvent(Resource):
 		"Organised by": args["Organised by"],
 		"Location": args["Location"],
 		"Date": args["Date"],
-		"Time": args["Time"]
+		"Time": args["Time"],
+		"Event ID": str(event_id)	
 		}
         events[event_id] = task
         return task, 201
@@ -92,7 +97,8 @@ class EventsList(Resource):
 		"Organised by": args["Organised by"],
 		"Location": args["Location"],
 		"Date": args["Date"],
-		"Time": args["Time"]
+		"Time": args["Time"],
+		"Event ID": event_id	
 		}
         return events[event_id], 201
 
