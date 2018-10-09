@@ -1,6 +1,6 @@
 # RestApiHackathon
 
-## /event/<string:event_id>    
+## /event/\<string:event_id\>    
 ### GET 
 request to this will return the event with id event_id
 ### PUT, DELETE 
