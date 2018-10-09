@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <script type='text/javascript' 
+            src='http://www.bing.com/api/maps/mapcontrol?callback=GetMap' 
+            async defer></script>
+    <script type='text/javascript'>
+    var map;
+
+
+
+    function GetMap() {
+        map = new Microsoft.Maps.Map('#myMap', {
+            credentials: 'Am_uRJBK3Fk_rFi7MIT2cVaMw-8-3pwRoZPlS7S-c13bJYla6CmBaj-gcPHzg9Ej',
+            center: new Microsoft.Maps.Location(26.190245, 91.695258),
+            mapTypeId: Microsoft.Maps.MapTypeId.aerial,
+            zoom: 14
+        });
+ 
+        var pins = [];
+
+        {% for event_id in events %} 
+
+        {% set x=events[event_id]["Location"] %}
+
+        var pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location({{ venues[x][0]|e }}, {{ venues[x][1]|e }}), {
+            color: 'red'
+        });
+
+        infobox = new Microsoft.Maps.Infobox(new Microsoft.Maps.Location({{ venues[x][0]|e }}, {{ venues[x][1]|e }}), {
+            visible: false
+        });
+
+        //Assign the infobox to a map instance.
+        infobox.setMap(map);
+
+        //Store some metadata with the pushpin.
+        pin.metadata = {
+            title: '{{ events[event_id]["Event name"] }}',
+            description: 'by: {{ events[event_id]["Organised by"] }} time: {{ events[event_id]["Time"] }}'
+        };
+        
+        pins.push(pin);
+
+                //Add a click event handler to the pushpin.
+        Microsoft.Maps.Events.addHandler(pin, 'click', pushpinClicked);
+
+
+        {% endfor %}
+                
+                //Load the Clustering module.
+        Microsoft.Maps.loadModule("Microsoft.Maps.Clustering", function () {
+            
+            //Create a ClusterLayer and add it to the map.
+            clusterLayer = new Microsoft.Maps.ClusterLayer(pins, {
+                clusteredPinCallback: createCustomClusteredPin,
+                gridSize: 80
+            });
+            map.layers.insert(clusterLayer);
+        });
+
+
+    }
+
+    function pushpinClicked(e) {
+            //Show an infobox when a pushpin is clicked.
+        showInfobox(e.target);
+    }
+    function showInfobox(pin) {
+        var descript = [];
+
+        //Check to see if the pushpin is a cluster.
+        if (pin.containedPushpins) {
+
+            //Create a list of all pushpins that are in the cluster.
+            descript.push('<div style="max-height:75px;overflow-y:auto;"><ul>');
+            for (var i = 0; i < pin.containedPushpins.length; i++) {
+                descript.push('<li><h3>', pin.containedPushpins[i].metadata.title, '</h3><p>',pin.containedPushpins[i].metadata.description,'</p></li>');
+            }
+            descript.push('</ul></div>');
+            //Display an infobox for the pushpin.
+            infobox.setOptions({
+                title: pin.metadata.title,
+                location: pin.getLocation(),
+                description: descript.join(''),
+                visible: true
+            });
+        }
+        else{
+            infobox.setOptions({
+                location: pin.getLocation(),
+                title: pin.metadata.title,
+                description: pin.metadata.description,
+                visible: true
+            });
+        }
+    }
+
+    function createCustomClusteredPin(cluster) {
+        //Define variables for minimum cluster radius, and how wide the outline area of the circle should be.
+        var minRadius = 12;
+        var outlineWidth = 7;
+
+        //Get the number of pushpins in the cluster
+        var clusterSize = cluster.containedPushpins.length;
+
+        //Calculate the radius of the cluster based on the number of pushpins in the cluster, using a logarithmic scale.
+        var radius = Math.log(clusterSize) / Math.log(10) * 3 + minRadius;
+
+        //Default cluster color is red.
+        var fillColor = 'rgba(255, 40, 40, 0.5)';
+
+        if (clusterSize < 5) {
+            //Make the cluster green if there are less than 10 pushpins in it.
+            fillColor = 'rgba(20, 180, 20, 0.5)';            
+        } else if (clusterSize < 15) {
+            //Make the cluster yellow if there are 10 to 99 pushpins in it.
+            fillColor = 'rgba(255, 210, 40, 0.5)';
+        }
+
+        //Create an SVG string of two circles, one on top of the other, with the specified radius and color.
+        var svg = ['<svg xmlns="http://www.w3.org/2000/svg" width="', (radius * 2), '" height="', (radius * 2), '">',
+            '<circle cx="', radius, '" cy="', radius, '" r="', radius, '" fill="', fillColor, '"/>',
+            '<circle cx="', radius, '" cy="', radius, '" r="', radius - outlineWidth, '" fill="', fillColor, '"/>',
+            '</svg>'];
+
+        cluster.metadata = {
+            title: cluster.containedPushpins.length +" Events :"
+        };
+        //Customize the clustered pushpin using the generated SVG and anchor on its center.
+        cluster.setOptions({
+            icon: svg.join(''),
+            anchor: new Microsoft.Maps.Point(radius, radius),
+            textOffset: new Microsoft.Maps.Point(0, radius - 8) //Subtract 8 to compensate for height of text.
+        });
+
+                //Add handler for the cluster click event.
+        Microsoft.Maps.Events.addHandler(cluster, 'click', pushpinClicked);
+
+    }
+
+
+    </script>
+</head>
+<body>
+    <p ></p>
+    
+    <div id="myMap" style="position:relative;width:100%;height:100%;"></div>
+</body>
+</html>

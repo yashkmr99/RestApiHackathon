@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, Response, render_template
 from flask_restful import Resource, Api, reqparse, abort
 
 app = Flask(__name__)
@@ -12,12 +12,12 @@ parser.add_argument("Date")
 parser.add_argument("Time")
 
 venues = {
-	"Audi" : [ 26.190935, 91.693063 ],
-	"Seminar Hall" : [ 26.191146, 91.692469 ],
-	"L1" : [ 26.188804, 91.691597 ],
-	"L2" : [ 26.188823, 91.691272 ],
-	"L3" : [ 26.189143, 91.691296 ],
-	"L4" : [ 26.189112, 91.691621 ]
+"Audi" : [ 26.190935, 91.693063 ],
+"Seminar Hall" : [ 26.191146, 91.692469 ],
+"L1" : [ 26.188804, 91.691597 ],
+"L2" : [ 26.188823, 91.691272 ],
+"L3" : [ 26.189143, 91.691296 ],
+"L4" : [ 26.189112, 91.691621 ]
 }
 
 events = {
@@ -41,6 +41,13 @@ events = {
 		"Location": "Seminar Hall",
 		"Date": "9 Oct",
 		"Time": "2pm"
+	},
+	"4":{
+		"Event name": "ddd",
+		"Organised by": "444",
+		"Location": "Seminar Hall",
+		"Date": "9 Oct",
+		"Time": "6pm"
 	}	
 }
 
@@ -89,9 +96,19 @@ class EventsList(Resource):
 		}
         return events[event_id], 201
 
+
+class LocateOnMap(Resource):
+	def get(self):
+		template_context = dict(events=events, venues=venues)
+		return Response(render_template('index.html', **template_context),mimetype='text/html')
+		
+
+
 api.add_resource(ManageEvent, '/event/<string:event_id>')
 api.add_resource(EventsList, '/events')
+api.add_resource(LocateOnMap, '/event_locations')
 
+#/<string:date>
 
 if __name__ == '__main__':
     app.run(debug=True)
